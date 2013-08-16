@@ -56,7 +56,6 @@ What is there to do?
 
 * Write better documentation.
 * Write tests.
-* Make sure the variables used by the transformation are never shadowed.
 * Create convenience functions to (de-)instrument a given module.
 * Patch OTP to print both line numbers and function arguments in the REPL.
 

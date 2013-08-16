@@ -26,8 +26,8 @@ function(Fun) ->
         0 -> Fun;
         Arity ->
             Args = cerl:fun_vars(Fun),
-            cerl:update_c_fun(Fun, Args,
-                              body(fresh_vars(Arity), Args, cerl:fun_body(Fun)))
+            Body = body(fresh_vars(Arity, Fun), Args, cerl:fun_body(Fun)),
+            cerl:update_c_fun(Fun, Args, Body)
     end.
 
 body(Vs, Args, Body) ->
@@ -49,11 +49,14 @@ node(VsArg, Node) ->
         _ -> Node
     end.
 
-fresh_vars(N) ->
-    fresh_vars(N, []).
+fresh_vars(N, Node) ->
+    fresh_vars(N, cerl_trees:variables(Node), 0, []).
 
-fresh_vars(0, Acc) ->
+fresh_vars(0, _, _, Acc) ->
     Acc;
-fresh_vars(N, Acc) ->
-    Name = list_to_atom("_shippai" ++ integer_to_list(N)),
-    fresh_vars(N - 1, [cerl:c_var(Name)|Acc]).
+fresh_vars(N, Vs, I, Acc) ->
+    Name = list_to_atom("_shippai" ++ integer_to_list(I)),
+    case ordsets:is_element(Name, Vs) of
+        true -> fresh_vars(N, Vs, I + 1, Acc);
+        false -> fresh_vars(N - 1, Vs, I + 1, [cerl:c_var(Name)|Acc])
+    end.
