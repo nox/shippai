@@ -16,11 +16,13 @@
 
 -export([core_transform/2]).
 
+-spec core_transform(cerl:c_module(), _) -> cerl:c_module().
 core_transform(Mod, _Opts) ->
     Defs = [ {Name,function(Fun)} || {Name,Fun} <- cerl:module_defs(Mod) ],
     cerl:update_c_module(Mod, cerl:module_name(Mod), cerl:module_exports(Mod),
                          cerl:module_attrs(Mod), Defs).
 
+-spec function(cerl:c_fun()) -> cerl:c_fun().
 function(Fun) ->
     case cerl:fun_arity(Fun) of
         0 -> Fun;
@@ -30,11 +32,13 @@ function(Fun) ->
             cerl:update_c_fun(Fun, Args, Body)
     end.
 
+-spec body([cerl:c_var()], [cerl:c_var()], cerl:cerl()) -> cerl:cerl().
 body(Vs, Args, Body) ->
     VsArg = cerl:make_list(Vs),
     cerl:c_let(Vs, cerl:c_values(Args),
                cerl_trees:map(fun (Node) -> node(VsArg, Node) end, Body)).
 
+-spec node(cerl:c_cons(), cerl:cerl()) -> cerl:cerl().
 node(VsArg, Node) ->
     case cerl:type(Node) of
         'fun' -> function(Node);
@@ -49,6 +53,7 @@ node(VsArg, Node) ->
         _ -> Node
     end.
 
+-spec fresh_vars(non_neg_integer(), cerl:cerl()) -> [cerl:c_var()].
 fresh_vars(N, Node) ->
     fresh_vars(N, cerl_trees:variables(Node), 0, []).
 
