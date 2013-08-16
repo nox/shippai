@@ -23,14 +23,14 @@ all:
 
 .PHONY: clean
 clean:
-	rm ebin/*.beam
+	@rm ebin/*.beam
 
 .PHONY: dialyze
 dialyze: all $(PLT)
-	$(DIALYZER) --plt $(PLT) -r ebin
+	@$(DIALYZER) --plt $(PLT) -r ebin
 
 .PHONY: plt
 plt: $(PLT)
 
 $(PLT):
-	@dialyzer --build_plt --apps kernel stdlib compiler --output_plt $@
+	@$(DIALYZER) --build_plt --apps kernel stdlib compiler --output_plt $@
