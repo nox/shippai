@@ -22,11 +22,9 @@ core_transform(Mod, _Opts) ->
                          cerl:module_attrs(Mod), Defs).
 
 function(Fun) ->
-    Arity = cerl:fun_arity(Fun),
-    case Arity of
-        0 ->
-            Fun;
-        _ ->
+    case cerl:fun_arity(Fun) of
+        0 -> Fun;
+        Arity ->
             Args = cerl:fun_vars(Fun),
             cerl:update_c_fun(Fun, Args,
                               body(fresh_vars(Arity), Args, cerl:fun_body(Fun)))
