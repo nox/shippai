@@ -43,14 +43,26 @@ node(VsArg, Node) ->
     case cerl:type(Node) of
         'fun' -> function(Node);
         primop ->
-            case cerl:atom_val(cerl:primop_name(Node)) of
-                match_fail ->
-                    [Arg] = cerl:primop_args(Node),
+            case match_fail_arg(Node) of
+                {ok,Arg} ->
                     cerl:update_c_call(Node, cerl:c_atom(erlang),
                                        cerl:c_atom(error), [Arg,VsArg]);
-                _ -> Node
+                error -> Node
             end;
         _ -> Node
+    end.
+
+-spec match_fail_arg(cerl:cerl()) -> {ok,cerl:cerl()} | error.
+match_fail_arg(Node) ->
+    Name = cerl:primop_name(Node),
+    case cerl:is_c_atom(Name) andalso cerl:atom_val(Name) =:= match_fail of
+        true ->
+            case cerl:primop_args(Node) of
+                [Arg] -> {ok,Arg};
+                _ -> error
+            end;
+        false ->
+            error
     end.
 
 -spec fresh_vars(non_neg_integer(), cerl:cerl()) -> [cerl:c_var()].
