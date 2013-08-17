@@ -1,2 +1,4 @@
 /ebin/*.beam
+/logs/
+/test/*.beam
 /.shippai_plt

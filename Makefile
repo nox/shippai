@@ -14,8 +14,18 @@
 
 ERL = erl
 DIALYZER = dialyzer
+CT_RUN = ct_run
 
 PLT = .shippai_plt
+COVER_SPEC = test/cover.spec
+CTLOGDIR = logs
+CTFLAGS = \
+	-noinput \
+	-batch \
+	-cover test/cover.spec \
+	-pa `pwd`/ebin \
+	-dir test \
+	-logdir $(CTLOGDIR)
 
 .PHONY: all
 all:
@@ -23,7 +33,7 @@ all:
 
 .PHONY: clean
 clean:
-	@rm ebin/*.beam
+	@rm -r ebin/*.beam logs
 
 .PHONY: dialyze
 dialyze: all $(PLT)
@@ -34,3 +44,10 @@ plt: $(PLT)
 
 $(PLT):
 	@$(DIALYZER) --build_plt --apps kernel stdlib compiler --output_plt $@
+
+.PHONY: test
+test: all $(CTLOGDIR)
+	@$(CT_RUN) $(CTFLAGS) -suite test/*_SUITE.erl
+
+$(CTLOGDIR):
+	@mkdir $@
