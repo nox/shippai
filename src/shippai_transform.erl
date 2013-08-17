@@ -58,11 +58,28 @@ match_fail_arg(Node) ->
     case cerl:is_c_atom(Name) andalso cerl:atom_val(Name) =:= match_fail of
         true ->
             case cerl:primop_args(Node) of
-                [Arg] -> {ok,Arg};
+                [Arg] ->
+                    case is_function_clause_arg(Arg) of
+                        true -> error;
+                        false -> {ok,Arg}
+                    end;
                 _ -> error
             end;
         false ->
             error
+    end.
+
+-spec is_function_clause_arg(cerl:cerl()) -> boolean().
+is_function_clause_arg(Arg) ->
+    case cerl:is_c_tuple(Arg) of
+        true ->
+            case cerl:tuple_es(Arg) of
+                [Tag|_] ->
+                            cerl:is_c_atom(Tag)
+                    andalso cerl:atom_val(Tag) =:= function_clause;
+                _ -> false
+            end;
+        false -> false
     end.
 
 -spec fresh_vars(non_neg_integer(), cerl:cerl()) -> [cerl:c_var()].
