@@ -33,7 +33,7 @@ all:
 
 .PHONY: clean
 clean:
-	@rm -r ebin/*.beam logs
+	@rm -rf ebin/*.beam logs test/*.beam
 
 .PHONY: dialyze
 dialyze: all $(PLT)
