@@ -21,3 +21,4 @@ case_clause(X, _) -> case X of 42 -> ok end.
 if_clause(X, _) -> if X =:= 42 -> ok end.
 try_clause(X, _) -> try X of 42 -> ok catch _ -> ok end.
 in_fun(X) -> fun (Y) -> case Y of X -> ok end end.
+badmatch(X, Y) -> X = Y, ok.
