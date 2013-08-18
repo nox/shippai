@@ -1,7 +1,7 @@
 Shippai!
 ========
 
-Shippai (変身) is the Japanese word for "failure."
+Shippai (失敗) is the Japanese word for "failure."
 
 What is it?
 -----------
