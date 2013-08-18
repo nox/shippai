@@ -35,8 +35,7 @@ function(Fun) ->
 -spec body([cerl:c_var()], [cerl:c_var()], cerl:cerl()) -> cerl:cerl().
 body(Vs, Args, Body) ->
     VsArg = cerl:make_list(Vs),
-    cerl:c_let(Vs, cerl:c_values(Args),
-               cerl_trees:map(fun (Node) -> node(VsArg, Node) end, Body)).
+    cerl:c_let(Vs, cerl:c_values(Args), node(VsArg, Body)).
 
 -spec node(cerl:c_cons(), cerl:cerl()) -> cerl:cerl().
 node(VsArg, Node) ->
@@ -49,8 +48,17 @@ node(VsArg, Node) ->
                                        cerl:c_atom(error), [Arg,VsArg]);
                 error -> Node
             end;
-        _ -> Node
+        _ ->
+            case cerl:is_leaf(Node) of
+                true -> Node;
+                false ->
+                    cerl:update_tree(Node, subtrees(VsArg, cerl:subtrees(Node)))
+            end
     end.
+
+-spec subtrees(cerl:c_cons(), [[cerl:cerl()]]) -> [[cerl:cerl()]].
+subtrees(VsArg, Trees) ->
+    [ [ node(VsArg, Node) || Node <- Group ] || Group <- Trees ].
 
 -spec match_fail_arg(cerl:cerl()) -> {ok,cerl:cerl()} | error.
 match_fail_arg(Node) ->
