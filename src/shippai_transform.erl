@@ -40,6 +40,7 @@ body(Vs, Args, Body) ->
 -spec node(cerl:c_cons(), cerl:cerl()) -> cerl:cerl().
 node(VsArg, Node) ->
     case cerl:type(Node) of
+        call -> call(VsArg, Node);
         'fun' -> function(Node);
         primop -> primop(VsArg, Node);
         _ ->
@@ -48,6 +49,32 @@ node(VsArg, Node) ->
                 false ->
                     cerl:update_tree(Node, subtrees(VsArg, cerl:subtrees(Node)))
             end
+    end.
+
+-spec call(cerl:c_cons(), cerl:cerl()) -> cerl:cerl().
+call(VsArg, Call) ->
+    Mod = cerl:call_module(Call),
+    Name = cerl:call_name(Call),
+    case cerl:is_c_atom(Mod) andalso cerl:is_c_atom(Name) of
+        true ->
+            case {cerl:atom_val(Mod),cerl:atom_val(Name)} of
+                {erlang,error} -> error_call(VsArg, Call);
+                _ -> Call
+            end;
+        false -> Call
+    end.
+
+-spec error_call(cerl:c_cons(), cerl:cerl()) -> cerl:cerl().
+error_call(VsArg, Call) ->
+    case cerl:call_args(Call) of
+        [Arg] ->
+            case view_tagged_tuple(Arg) of
+                {badrecord,2} ->
+                    cerl:update_c_call(Call, cerl:c_atom(erlang),
+                                       cerl:c_atom(error), [Arg,VsArg]);
+                false -> Call
+            end;
+        _ -> Call
     end.
 
 -spec primop(cerl:c_cons(), cerl:cerl()) -> cerl:cerl().
@@ -62,9 +89,9 @@ primop(VsArg, Op) ->
 match_fail_primop(VsArg, Op) ->
     case cerl:primop_args(Op) of
         [Arg] ->
-            case is_function_clause_arg(Arg) of
-                true -> Op;
-                false ->
+            case view_tagged_tuple(Arg) of
+                {function_clause,_} -> Op;
+                _ ->
                     cerl:update_c_call(Op, cerl:c_atom(erlang),
                                        cerl:c_atom(error), [Arg,VsArg])
             end;
@@ -75,14 +102,16 @@ match_fail_primop(VsArg, Op) ->
 subtrees(VsArg, Trees) ->
     [ [ node(VsArg, Node) || Node <- Group ] || Group <- Trees ].
 
--spec is_function_clause_arg(cerl:cerl()) -> boolean().
-is_function_clause_arg(Arg) ->
-    case cerl:is_c_tuple(Arg) of
+-spec view_tagged_tuple(cerl:cerl()) -> {atom(),non_neg_integer()} | false.
+view_tagged_tuple(Node) ->
+    case cerl:is_c_tuple(Node) of
         true ->
-            case cerl:tuple_es(Arg) of
-                [Tag|_] ->
-                            cerl:is_c_atom(Tag)
-                    andalso cerl:atom_val(Tag) =:= function_clause;
+            case cerl:tuple_es(Node) of
+                [E|_] ->
+                    case cerl:is_c_atom(E) of
+                        true -> {cerl:atom_val(E),cerl:tuple_arity(Node)};
+                        false -> false
+                    end;
                 _ -> false
             end;
         false -> false

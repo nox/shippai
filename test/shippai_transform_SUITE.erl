@@ -33,6 +33,7 @@ trivial(Config) when is_list(Config) ->
     check(if_clause, fun shippai_trivial:if_clause/2, [43,foo]),
     check({try_clause,43}, fun shippai_trivial:try_clause/2, [43,foo]),
     check({badmatch,43}, fun shippai_trivial:badmatch/2, [42,43]),
+    check({badrecord,r}, fun shippai_trivial:badrecord/2, [42,43]),
     F = shippai_trivial:in_fun(foo),
     check({case_clause,bar}, F, [bar]).
 

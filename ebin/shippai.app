@@ -14,7 +14,7 @@
 
 {application, shippai, [
     {description, "A Core Erlang transform to enhance match failures."},
-    {vsn, "1.0.1"},
+    {vsn, "1.1.0"},
     {registered, []},
     {modules, [shippai_transform]},
     {applications, [

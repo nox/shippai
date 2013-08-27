@@ -9,6 +9,9 @@ What is it?
 Shippai is a Core Erlang transform which changes any match error to a call to
 `erlang:error/2` using the arguments which were given to the current function.
 
+Calls to `erlang:error(badrecord)` added by the record expansion are also
+transformed.
+
 Example
 -------
 
