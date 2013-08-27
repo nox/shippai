@@ -45,7 +45,7 @@ $ erl
 ** exception error: no case clause matching foo
      in function  t:t/1
         called as t:t(foo)
-1> t:t(foo).
+1> catch t:t(foo).
 {'EXIT',{{case_clause,foo},
          [{t,t,[foo],[{file,"t.erl"},{line,5}]},
           ...]}}
