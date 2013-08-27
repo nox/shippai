@@ -41,13 +41,7 @@ body(Vs, Args, Body) ->
 node(VsArg, Node) ->
     case cerl:type(Node) of
         'fun' -> function(Node);
-        primop ->
-            case match_fail_arg(Node) of
-                {ok,Arg} ->
-                    cerl:update_c_call(Node, cerl:c_atom(erlang),
-                                       cerl:c_atom(error), [Arg,VsArg]);
-                error -> Node
-            end;
+        primop -> primop(VsArg, Node);
         _ ->
             case cerl:is_leaf(Node) of
                 true -> Node;
@@ -56,26 +50,30 @@ node(VsArg, Node) ->
             end
     end.
 
+-spec primop(cerl:c_cons(), cerl:cerl()) -> cerl:cerl().
+primop(VsArg, Op) ->
+    Name = cerl:primop_name(Op),
+    case cerl:is_c_atom(Name) andalso cerl:atom_val(Name) =:= match_fail of
+        true -> match_fail_primop(VsArg, Op);
+        false -> Op
+    end.
+
+-spec match_fail_primop(cerl:c_cons(), cerl:cerl()) -> cerl:cerl().
+match_fail_primop(VsArg, Op) ->
+    case cerl:primop_args(Op) of
+        [Arg] ->
+            case is_function_clause_arg(Arg) of
+                true -> Op;
+                false ->
+                    cerl:update_c_call(Op, cerl:c_atom(erlang),
+                                       cerl:c_atom(error), [Arg,VsArg])
+            end;
+        _ -> Op
+    end.
+
 -spec subtrees(cerl:c_cons(), [[cerl:cerl()]]) -> [[cerl:cerl()]].
 subtrees(VsArg, Trees) ->
     [ [ node(VsArg, Node) || Node <- Group ] || Group <- Trees ].
-
--spec match_fail_arg(cerl:cerl()) -> {ok,cerl:cerl()} | error.
-match_fail_arg(Node) ->
-    Name = cerl:primop_name(Node),
-    case cerl:is_c_atom(Name) andalso cerl:atom_val(Name) =:= match_fail of
-        true ->
-            case cerl:primop_args(Node) of
-                [Arg] ->
-                    case is_function_clause_arg(Arg) of
-                        true -> error;
-                        false -> {ok,Arg}
-                    end;
-                _ -> error
-            end;
-        false ->
-            error
-    end.
 
 -spec is_function_clause_arg(cerl:cerl()) -> boolean().
 is_function_clause_arg(Arg) ->
