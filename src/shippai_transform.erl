@@ -72,7 +72,7 @@ error_call(VsArg, Call) ->
                 {badrecord,2} ->
                     cerl:update_c_call(Call, cerl:c_atom(erlang),
                                        cerl:c_atom(error), [Arg,VsArg]);
-                false -> Call
+                _ -> Call
             end;
         _ -> Call
     end.

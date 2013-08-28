@@ -25,3 +25,5 @@ try_clause(X, _) -> try X of 42 -> ok catch _ -> ok end.
 in_fun(X) -> fun (Y) -> case Y of X -> ok end end.
 badmatch(X, Y) -> X = Y, ok.
 badrecord(X, _) -> X#r{}.
+
+external_error_call(X) -> error({error,tuple_size(X)}).
