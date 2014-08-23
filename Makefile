@@ -43,7 +43,7 @@ dialyze: all $(PLT)
 plt: $(PLT)
 
 $(PLT):
-	@$(DIALYZER) --build_plt --apps kernel stdlib compiler --output_plt $@
+	@$(DIALYZER) --build_plt --apps erts kernel stdlib compiler --output_plt $@
 
 .PHONY: test
 test: all $(CTLOGDIR)
